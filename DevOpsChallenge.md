@@ -30,20 +30,22 @@ Another approach we have is the CDK where we have mixture between imperative and
 Popular infrastructure as a code systems are:
   - Terraform / OpenTofu
   - Pulumi, AWS CDK
-  - Ansible, Pupet 
+  - Ansible, Pupet ( you can use them to manipulate resources but in general they are configurational management systems )
   - Crossplane
 
 The most important when choosing is the availability of ready modules and ease of use. Another point when we should consider the proper tool is the state management. 
 
 ## Observability
 
-Mondern observability is based on logs, traces and metrics. 
+Mondern observability is based on logs, traces and metrics.
 
 # Logs
 Logs are produced by application and can have different levels. The idea is to be able to index the logs and identify problematic areas. In context of microservices/k8s we usually use following system for the logs:
 
 - Loki 
 - Elastic search
+- Cloudwatch Logs ( aggregates logs for native services or through cloudwatch agent )
+- Amazon Opensearch ( it can be used as SIEM but logs needs to be preprocessed to be integrated with it )
 
 # Metrics
 
@@ -52,6 +54,7 @@ Each system provides different metrics like usage of CPU, Memory, Threads and ot
 - Prometheus with Thanos
 - Victoria Metrics
 - Datadog and other 
+- Cloudwatch ( we can find there many metrics that already available for aws resources )
 
 # Traces
 
@@ -60,25 +63,38 @@ Traces are usually data that tracks the application flow. With additional agent 
 - Skywalking APM
 - Datadog APM
 - Opentelemtry ( we can different agents and collectors)
+- X-Ray ( in AWS can work as APM )
 
 Basically when we have distributed environment the monitoring is a challenge. Through usage of all pillars of the Observability we can improve the visibility in the communication between the services. This can improve the solving of criticial issues on time and even predict in case of performance degradation is ongoing.
+
 
 ## Security 
 
 Imagine you would join our team and put in charge of securing our AWS infrastructure. What are the first three things that you check, to limit the risk of a breach? Explain why.
 
-I would check the following systems in AWS:
+Risk of the breach is usually due to badly organized access and controls. Another reason could be unencrypted data at rest or in motion. In next section I have revised few option that can help identify potential threads and identify risk of breach.
 
 1. Security hub is enabled and report of scanning. 
 
-AWS already provides a system to check against CIS cerfication and identifies risks in the AWS accounts. It includes many best practicdes:
+AWS already provides a service(Security Hub) to check CIS compliance and identifies risks in the AWS accounts. It validates through Config and other services for security controls of the environment:
 
-- MFA 
-- open security groups  (0.0.0.0/0)
-- IAM accounts instead of rules and policies
-- EC2 with direct public access without protection
-- least privilege 
+- MFA is enabled for all accounts
+- there are no open security groups  (0.0.0.0/0)
+- IAM user account access key should be removed
+- Strong password policy for all accounts
+- Users not used in the last 45 to be deleted
+- Least privilege principle is applied on all levels
+- Cloud Trail is activated 
+- VPC flow logs is activated for tracing of suspicious traffic
+- Guard Duty is activated and alerting is organized for cirical threats
+- S3 buckets are secured and encrypted (no public access where possible)
+- Amazon Inspector is activated 
 
-2. Publicly available resources like Loadbalancers and other systems are protected with WAF. Usually we use Hub and Spoke accounts with firewalls to protect outgoing and incoming traffic. Production, Staging and Development are in different groups and networks.
+2. Publicly available resources like Loadbalancers and other systems are protected with WAF. Important step for WAF is to activate the managed rules so we get protection of most common threats and DDOS attacks. This includes:
 
-3. SSO is enabled with strict policies are applied for accesing multiple accounts. Production accounts are restricted with proper groups and only authroized persons have access to them.
+- Rate limiting
+- Bad inputs
+- Blocks ips with bad reputation
+and other
+
+3. Separation of Production and Non-Production accounts and traffic. We have a possibility that breach can come from internal user or account. Best practice is to use landing zones with AWS Organization and Tower. Here we can apply security policies based on account. Moreover landing zone should support hub and spoke topolgy where network account is dedicated to aggregate traffic. Here we apply AWS Firewall for better control of incoming and outgoing traffic. The accounts for production and non production should be split and access to them is organized through SSO with striclty defined groups of users.
