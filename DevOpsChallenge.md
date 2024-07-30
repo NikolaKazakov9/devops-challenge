@@ -82,7 +82,7 @@ AWS already provides a service(Security Hub) to check CIS compliance and identif
 - there are no open security groups  (0.0.0.0/0)
 - IAM user account access key should be removed
 - Strong password policy for all accounts
-- Users not used in the last 45 to be deleted
+- Users not used in the last 45 days to be deleted
 - Least privilege principle is applied on all levels
 - Cloud Trail is activated 
 - VPC flow logs is activated for tracing of suspicious traffic
